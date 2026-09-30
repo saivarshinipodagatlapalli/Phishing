@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishGuard - Prototype</title>
+<style>
+:root{font-family:Inter,Arial,sans-serif;color:#eaf1ff;background:#08111f}
+*{box-sizing:border-box} body{margin:0;background:#08111f}
+header{padding:22px 7%;border-bottom:1px solid #1c2b40;background:#0b1728}
+.logo{font-size:25px;font-weight:800}.logo span{color:#56d6ff}
+.hero{padding:55px 7% 30px;max-width:1050px;margin:auto}
+.badge{display:inline-block;padding:7px 12px;border-radius:20px;background:#102b3c;color:#65dcff;font-size:13px}
+h1{font-size:42px;margin:18px 0 10px}.sub{color:#9db0c9;font-size:17px;line-height:1.6}
+.card{max-width:1050px;margin:10px auto 45px;padding:28px;background:#0d1b2d;border:1px solid #20324a;border-radius:18px}
+.tabs{display:flex;gap:10px;margin-bottom:18px}.tab{border:1px solid #29415e;background:#122238;color:#b9c9dc;padding:10px 16px;border-radius:10px;cursor:pointer}.tab.active{background:#174765;color:#fff}
+textarea,input{width:100%;background:#071321;color:#eef5ff;border:1px solid #29415e;border-radius:12px;padding:15px;font-size:15px;outline:none}
+textarea{height:145px;resize:vertical}.actions{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+button{border:0;border-radius:11px;padding:12px 20px;font-weight:700;cursor:pointer}.scan{background:#56d6ff;color:#06111c}.sample{background:#17283d;color:#cfe0f4}
+.result{display:none;margin-top:22px;padding:20px;border-radius:14px;background:#101f32;border:1px solid #29415e}
+.status{font-size:22px;font-weight:800;margin-bottom:8px}.safe{color:#66e6a0}.phish{color:#ff8c8c}.suspicious{color:#ffd36a}
+.score{color:#b8c8da;margin-bottom:14px}.reason{padding:9px 0;border-bottom:1px solid #203149;color:#cbd8e8}.tip{margin-top:16px;color:#9fb3ca}
+footer{text-align:center;color:#71859d;padding:20px;font-size:13px}
+@media(max-width:650px){h1{font-size:32px}.hero{padding-top:35px}.card{margin-left:4%;margin-right:4%}}
+</style>
+</head>
+<body>
+<header><div class="logo">🛡️ Phish<span>Guard</span></div></header>
+<section class="hero">
+<span class="badge">PROJECT 16 • PROTOTYPE</span>
+<h1>Phishing Email & Website Detector</h1>
+<p class="sub">Check a suspicious message or website URL and get an easy-to-understand security assessment with detected indicators and safety guidance.</p>
+</section>
+<section class="card">
+<div class="tabs">
+<button class="tab active" onclick="setMode('email',this)">Email / Message</button>
+<button class="tab" onclick="setMode('url',this)">Website URL</button>
+</div>
+<div id="emailBox">
+<textarea id="emailInput" placeholder="Paste a sample email or message here..."></textarea>
+</div>
+<div id="urlBox" style="display:none">
+<input id="urlInput" placeholder="Enter a website URL, e.g. https://example.com">
+</div>
+<div class="actions">
+<button class="scan" onclick="scan()">🔍 Analyze</button>
+<button class="sample" onclick="sampleInput()">Try Sample</button>
+</div>
+<div class="result" id="result">
+<div class="status" id="status"></div>
+<div class="score" id="score"></div>
+<div id="reasons"></div>
+<div class="tip">💡 Safety tip: If you are unsure about a link or message, don't enter passwords, OTPs, or banking details until the source is verified.</div>
+</div>
+</section>
+<footer>Prototype demonstration • Final project will use Python + ML-based detection</footer>
+<script>
+let mode='email';
+function setMode(m,el){mode=m;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');document.getElementById('emailBox').style.display=m==='email'?'block':'none';document.getElementById('urlBox').style.display=m==='url'?'block':'none';document.getElementById('result').style.display='none'}
+function sampleInput(){
+if(mode==='email') document.getElementById('emailInput').value='Your account needs urgent verification. Click the link below and confirm your password immediately.';
+else document.getElementById('urlInput').value='http://secure-account-example.test/login';
+}
+function scan(){
+let text=mode==='email'?document.getElementById('emailInput').value.trim():document.getElementById('urlInput').value.trim();
+if(!text){alert('Please enter a message or URL first.');return}
+let reasons=[], score=20;
+let low=text.toLowerCase();
+if(/urgent|immediately|verify|confirm|suspended|limited time/.test(low)){reasons.push('Urgency or pressure language detected');score+=25}
+if(/password|otp|login|bank|account/.test(low)){reasons.push('Sensitive account information requested/referenced');score+=25}
+if(mode==='url' && /^http:\/\//i.test(text)){reasons.push('Website is using HTTP instead of HTTPS');score+=20}
+if(mode==='url' && /@|[-_]{2,}|login|verify|secure-account/i.test(text)){reasons.push('URL contains potentially suspicious patterns');score+=15}
+score=Math.min(score,95);
+let status='Likely Safe', cls='safe';
+if(score>=70){status='Likely Phishing';cls='phish'} else if(score>=45){status='Suspicious';cls='suspicious'}
+document.getElementById('status').textContent='⚠️ '+status;
+document.getElementById('status').className='status '+cls;
+document.getElementById('score').textContent='Demo confidence score: '+score+'%';
+document.getElementById('reasons').innerHTML=(reasons.length?reasons:['No strong phishing indicators detected in this demo input.']).map(r=>'<div class="reason">• '+r+'</div>').join('');
+document.getElementById('result').style.display='block';
+}
+</script>
+</body>
+</html>
